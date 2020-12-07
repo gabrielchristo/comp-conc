@@ -1,0 +1,12 @@
+Alunos:
+	Gabriel Martins Machado Christo 117217732
+	Danilo Santos Vieira 			115103034
+	
+Q1. Sim. Porque a ordem de escalonamento dos processos das threads, que é realizado pelo sistema operacional, é aleatório.
+
+Q2. Neste programa tivemos a passagem de argumentos, onde podemos observar claramente a qual thread era a execução da função.
+Foi necessário alocar os argumentos (nesse caso na stack) porque o argumento da função foi definido como um ponteiro de void, logo temos de passar o endereço da variável alocada (e dentro da função realizar o cast). Do contrário, passando a variável temporária "thread" por exemplo, a função iria tentar acessar na verdade a posição de memória "thread" ao invés de seu valor literal, o que possivelmente iria gerar uma segmentation fault.
+
+Q3. Sim. O acesso a estrutura está correto, e também podemos notar que após o malloc() na thread principal estamos liberando a memória alocada na função passada como parâmetro.
+
+Q4. A diferença é que agora a thread principal aguarda todas as threads secundárias executarem antes de finalizar.

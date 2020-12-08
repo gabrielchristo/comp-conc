@@ -1,7 +1,7 @@
 /*
 Alunos:
 	Gabriel Martins Machado Christo 117217732
-	Danilo Santos Vieira 			115103034
+	Danilo Santos Vieira 		115103034
 */
 
 #include <stdio.h>
@@ -12,9 +12,15 @@ Alunos:
 #define N 15
 #define NTHREADS 2
 
-void *increaseByOne(void* arg) {
+void *increaseOddsByOne(void* arg) {
   int* array = (int*) arg;
-  for(int i = 0; i < N; i++) array[i]++;
+  for(int i = 0; i < N; i+=2) array[i]++;
+  pthread_exit(NULL);
+}
+
+void *increaseEvensByOne(void* arg){
+  int* array = (int*) arg;
+  for(int i = 1; i < N; i+=2) array[i]++;
   pthread_exit(NULL);
 }
 
@@ -33,7 +39,8 @@ int main() {
   printArray("valores iniciais", &array[0]);
 
   for(thread=0; thread<NTHREADS; thread++) {
-    if (pthread_create(&tid_sistema[thread], NULL, increaseByOne, (void*) &array[0])) {
+    void *(*func)(void*) = thread ? &increaseEvensByOne : &increaseOddsByOne;
+    if (pthread_create(&tid_sistema[thread], NULL, func, (void*) &array[0])) {
       printf("--ERRO: pthread_create()\n"); exit(-1);
     }
   }

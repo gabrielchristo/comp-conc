@@ -7,11 +7,15 @@ Alunos:
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include "timer.h"
 
+#define TYPE float
+#define TYPE_FORMAT "%f"
+#define BUFFER_SIZE 128
+
 typedef struct{
-    float** matrix;
+    TYPE** matrix;
     int lines;
     int columns;
 } matrix_t;
@@ -28,12 +32,12 @@ matrix_t init_matrix(int lines, int columns)
     m.lines = lines;
     m.columns = columns;
 
-    m.matrix = calloc(lines, sizeof(float));
+    m.matrix = calloc(lines, sizeof(TYPE));
     if(m.matrix == NULL) throw("error on memory allocation");
 
     for(int i = 0; i < lines; i++){
-        m.matrix[i] = calloc(columns, sizeof(float));
-	if(m.matrix[i] == NULL) throw("error on memory allocation");
+        m.matrix[i] = calloc(columns, sizeof(TYPE));
+		if(m.matrix[i] == NULL) throw("error on memory allocation");
     }
 
     return m;
@@ -55,41 +59,90 @@ matrix_t create_matrix_from_file(char* path)
 
     matrix_t m = init_matrix(l, c);
 
-    for(int i = 0; i < l; i++){
-	for(int j = 0; j < c; j++){
-	    fscanf(m_file, "%f", &m.matrix[i][j]);
-	}
-    }
+    for(int i = 0; i < l; i++)
+		for(int j = 0; j < c; j++)
+			fscanf(m_file, TYPE_FORMAT, &m.matrix[i][j]);
 
     return m;
 }
 
 void print_matrix(matrix_t m)
 {
-    for(int i = 0; i < m.lines; i++){
-	for(int j = 0; j < m.columns; j++){
-		printf("index %d,%d - %f\n", i, j, m.matrix[i][j]);
-	}
-    }
+	char msg[BUFFER_SIZE]; memset(msg, 0, BUFFER_SIZE);
+	strcat(msg, "index %d,%d - ");
+	strcat(msg, TYPE_FORMAT);
+	strcat(msg, "\n");
+	
+    for(int i = 0; i < m.lines; i++)
+		for(int j = 0; j < m.columns; j++)
+			printf(msg, i, j, m.matrix[i][j]);
 }
 
+matrix_t sequential_multiply(matrix_t m1, matrix_t m2)
+{
+    if(m1.columns != m2.lines) throw("dimension error");
+
+    matrix_t m = init_matrix(m1.lines, m2.columns);
+
+    for(int i = 0; i < m.lines; i++)
+		for(int j = 0; j < m.columns; j++)
+			for(int k = 0; k < m1.columns; k++)
+				m.matrix[i][j] += m1.matrix[i][k] * m2.matrix[k][j];
+
+    return m;
+}
 
 int main(int argc, char** argv)
 {
-    double start, finish;
-    GET_TIME(start);
-    
-    matrix_t m1 = create_matrix_from_file("matriz_1.txt");
-    matrix_t m2 = create_matrix_from_file("matriz_2.txt");
+    double start, finish, total;
+	
+	// input section
+	int use_sequential;
+	printf("0 - parallel\n1 - sequential\n");
+	scanf("%d", &use_sequential);
+	
+	int threads_number;
+	if(!use_sequential){
+		printf("Threads number: ");
+		scanf("%d", &threads_number);
+	}
+	
+	char matrix_file_1[BUFFER_SIZE];
+	char matrix_file_2[BUFFER_SIZE];
+	printf("First matrix filename: "); scanf("%s", &matrix_file_1);
+	printf("Second matrix filename: "); scanf("%s", &matrix_file_2);
+	
+	// memory allocation
+	GET_TIME(start);
+    matrix_t m1 = create_matrix_from_file(matrix_file_1);
+    matrix_t m2 = create_matrix_from_file(matrix_file_2);
+	GET_TIME(finish);
+	total += (finish - start);
+	
+	// calculation (sequential)
+	if(use_sequential){
+		GET_TIME(start);
+		matrix_t m3 = sequential_multiply(m1, m2);
+		GET_TIME(finish);
+		total += (finish - start);
+	}
+	// calculation (parallel)
+	else{
+		
+		// todo: linhas alternadas
+	}
+	
 
-    print_matrix(m1);
-    print_matrix(m2);
-
+	// memory deallocation
+	GET_TIME(start);
     free_matrix(m1);
     free_matrix(m2);
-
-    GET_TIME(finish);
-    printf("elapsed %lf seconds\n", finish - start);
+	free_matrix(m3);
+	GET_TIME(finish);
+	total += (finish - start);
+	
+	
+	printf("Elapsed %lf seconds\n", total);
 
     return 0;
 }

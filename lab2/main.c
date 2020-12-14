@@ -1,7 +1,7 @@
 /*
 Alunos:
-  Gabriel Martins Machado Christo
-  Danilo Santos Vieira
+  Gabriel Martins Machado Christo 117217732
+  Danilo Santos Vieira            115103034
 */
 
 #include <pthread.h>
@@ -19,6 +19,12 @@ typedef struct{
     int lines;
     int columns;
 } matrix_t;
+
+typedef struct{
+    matrix_t* m1;
+    matrix_t* m2;
+    matrix_t* output;
+} worker;
 
 void throw(char *msg)
 {
@@ -45,8 +51,13 @@ matrix_t init_matrix(int lines, int columns)
 
 void free_matrix(matrix_t m)
 {
-    for(int i = 0; i < m.lines; i++) free(m.matrix[i]);
-    free(m.matrix);
+	if(!m.matrix) return;
+	
+    for(int i = 0; i < m.lines; i++)
+		if(m.matrix[i])
+			free(m.matrix[i]);
+	
+	free(m.matrix);
 }
 
 matrix_t create_matrix_from_file(char* path)
@@ -92,6 +103,13 @@ matrix_t sequential_multiply(matrix_t m1, matrix_t m2)
     return m;
 }
 
+void* parallel_multiply(void* arg)
+{
+	matrix_t* matrices = (matrix_t*) arg;
+	
+	pthread_exit(NULL);
+}
+
 int main(int argc, char** argv)
 {
     double start, finish, total;
@@ -101,7 +119,7 @@ int main(int argc, char** argv)
 	printf("0 - parallel\n1 - sequential\n");
 	scanf("%d", &use_sequential);
 	
-	int threads_number;
+	int threads_number = 0;
 	if(!use_sequential){
 		printf("Threads number: ");
 		scanf("%d", &threads_number);
@@ -117,19 +135,38 @@ int main(int argc, char** argv)
     matrix_t m1 = create_matrix_from_file(matrix_file_1);
     matrix_t m2 = create_matrix_from_file(matrix_file_2);
 	GET_TIME(finish);
+	printf("Elapsed %lf seconds for initialization\n", finish - start);
 	total += (finish - start);
 	
-	// calculation (sequential)
+	// calculation
+	matrix_t m3 = init_matrix(0, 0);
+	// sequential
 	if(use_sequential){
 		GET_TIME(start);
-		matrix_t m3 = sequential_multiply(m1, m2);
+		m3 = sequential_multiply(m1, m2);
 		GET_TIME(finish);
+		printf("Elapsed %lf seconds for sequential processing\n", finish - start);
 		total += (finish - start);
 	}
-	// calculation (parallel)
+	// parallel
 	else{
-		
 		// todo: linhas alternadas
+		GET_TIME(start);
+		pthread_t threads[threads_number];
+		
+		matrix_t matrices[2] = {m1, m2};
+		
+		for(int i = 0; i < threads_number; i++)
+			if(pthread_create(&threads[i], NULL, parallel_multiply, (void*)&matrices))
+				throw("error on thread creation");
+			
+		for(int i = 0; i < threads_number; i++)
+			if(pthread_join(threads[i], NULL))
+				throw("error on joining thread");
+			
+		GET_TIME(finish);
+		printf("Elapsed %lf seconds for parallel processing\n", finish - start);
+		total += (finish - start);
 	}
 	
 
@@ -139,8 +176,8 @@ int main(int argc, char** argv)
     free_matrix(m2);
 	free_matrix(m3);
 	GET_TIME(finish);
+	printf("Elapsed %lf seconds for memory deallocation\n", finish - start);
 	total += (finish - start);
-	
 	
 	printf("Elapsed %lf seconds\n", total);
 

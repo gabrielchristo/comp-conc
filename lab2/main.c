@@ -21,10 +21,23 @@ typedef struct{
 } matrix_t;
 
 typedef struct{
-    matrix_t* m1;
-    matrix_t* m2;
-    matrix_t* output;
+    matrix_t m1;
+    matrix_t m2;
+    matrix_t output;
+	int currentThread;
+	int totalThreads;
 } worker;
+
+worker* init_worker(matrix_t m1, matrix_t m2, matrix_t output, int crrtThread, int totalThreads)
+{
+	worker* w = malloc(sizeof(worker));
+	w->m1 = m1;
+	w->m2 = m2;
+	w->output = output;
+	w->currentThread = crrtThread;
+	w->totalThreads = totalThreads;
+	return w;
+}
 
 void throw(char *msg)
 {
@@ -79,7 +92,7 @@ matrix_t create_matrix_from_file(char* path)
 
 void print_matrix(matrix_t m)
 {
-	char msg[BUFFER_SIZE]; memset(msg, 0, BUFFER_SIZE);
+	char msg[BUFFER_SIZE]; memset(&msg[0], 0, BUFFER_SIZE);
 	strcat(msg, "index %d,%d - ");
 	strcat(msg, TYPE_FORMAT);
 	strcat(msg, "\n");
@@ -89,24 +102,28 @@ void print_matrix(matrix_t m)
 			printf(msg, i, j, m.matrix[i][j]);
 }
 
-matrix_t sequential_multiply(matrix_t m1, matrix_t m2)
+void sequential_multiply(matrix_t m1, matrix_t m2, matrix_t output)
 {
     if(m1.columns != m2.lines) throw("dimension error");
 
-    matrix_t m = init_matrix(m1.lines, m2.columns);
-
-    for(int i = 0; i < m.lines; i++)
-		for(int j = 0; j < m.columns; j++)
+    for(int i = 0; i < output.lines; i++)
+		for(int j = 0; j < output.columns; j++)
 			for(int k = 0; k < m1.columns; k++)
-				m.matrix[i][j] += m1.matrix[i][k] * m2.matrix[k][j];
-
-    return m;
+				output.matrix[i][j] += m1.matrix[i][k] * m2.matrix[k][j];
 }
 
 void* parallel_multiply(void* arg)
 {
-	matrix_t* matrices = (matrix_t*) arg;
+	worker* w = (worker*) arg;
 	
+	for(int i = w->currentThread; i < w->output.lines; i += w->totalThreads){
+	    //if(i > w->output.lines) pthread_exit(NULL);
+
+	    for(int j = 0; j < w->output.columns; j++)
+	        for(int k = 0; k < w->m1.columns; k++)
+				w->output.matrix[i][j] += w->m1.matrix[i][k] * w->m2.matrix[k][j];
+	}
+
 	pthread_exit(NULL);
 }
 
@@ -134,31 +151,29 @@ int main(int argc, char** argv)
 	GET_TIME(start);
     matrix_t m1 = create_matrix_from_file(matrix_file_1);
     matrix_t m2 = create_matrix_from_file(matrix_file_2);
+	matrix_t m3 = init_matrix(m1.lines, m2.columns);
 	GET_TIME(finish);
 	printf("Elapsed %lf seconds for initialization\n", finish - start);
 	total += (finish - start);
-	
-	// calculation
-	matrix_t m3 = init_matrix(0, 0);
-	// sequential
+
+	// calculation sequential
 	if(use_sequential){
 		GET_TIME(start);
-		m3 = sequential_multiply(m1, m2);
+		sequential_multiply(m1, m2, m3);
 		GET_TIME(finish);
 		printf("Elapsed %lf seconds for sequential processing\n", finish - start);
 		total += (finish - start);
 	}
-	// parallel
+	// calculation parallel
 	else{
-		// todo: linhas alternadas
 		GET_TIME(start);
 		pthread_t threads[threads_number];
 		
-		matrix_t matrices[2] = {m1, m2};
-		
-		for(int i = 0; i < threads_number; i++)
-			if(pthread_create(&threads[i], NULL, parallel_multiply, (void*)&matrices))
+		for(int i = 0; i < threads_number; i++){
+			worker* w = init_worker(m1, m2, m3, i, threads_number);
+			if(pthread_create(&threads[i], NULL, parallel_multiply, (void*)w))
 				throw("error on thread creation");
+		}
 			
 		for(int i = 0; i < threads_number; i++)
 			if(pthread_join(threads[i], NULL))
@@ -169,6 +184,8 @@ int main(int argc, char** argv)
 		total += (finish - start);
 	}
 	
+	// matrix output
+	//print_matrix(m3);
 
 	// memory deallocation
 	GET_TIME(start);
@@ -180,6 +197,7 @@ int main(int argc, char** argv)
 	total += (finish - start);
 	
 	printf("Elapsed %lf seconds\n", total);
+	
 
     return 0;
 }

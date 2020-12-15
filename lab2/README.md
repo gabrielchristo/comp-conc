@@ -4,6 +4,14 @@ Danilo Santos Vieira - 115103034
 
 Gabriel Martins Machado Christo - 117217732
 
+Foi utilizada a estratégia de linhas intercaladas de acordo com o identificador de cada thread para efetuar a multiplicação das matrizes
+
+A leitura das matrizes é feita através de arquivos de texto definidos na execução do programa, onde os dois primeiros valores representam as linhas e colunas, e os demais representam os dados da matriz
+
+Foi feito um script auxiliar, em python, para gerar as matrizes de qualquer dimensão com valores aleatórios e salvar em um arquivo de texto
+
+Abaixo, os resultados dos casos de teste
+
 | Dimensão/Threads | 1        | 2        | Aceleração |
 |------------------|----------|----------|------------|
 | 500              | 4.1745   | 3.1801   | 131%       |

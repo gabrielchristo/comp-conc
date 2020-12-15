@@ -16,4 +16,4 @@ Gabriel Martins Machado Christo - 117217732
 | 1000             | 43.5112  | 30.2918  | 143%       |
 | 2000             | 560.3144 | 378.3855 | 148%       |
 
-Os testes foram realizados em um computador dual-core, e como podemos notar não houve uma melhora de desempenho significativa passando de 2 para 4 threads, exceto no último, possivelmente pelo grande número de entradas na matriz
+Os testes foram realizados em um computador dual-core, e como podemos notar não houve uma melhora de desempenho significativa passando de 2 para 4 threads, exceto no caso da matriz de dimensões 2000x2000, possivelmente pelo grande número de entradas

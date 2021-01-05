@@ -128,6 +128,9 @@ void* calculateAreaRectagleParallel(void* arguments)
 //Função principal
 int main(int argc, char** argv)
 {
+	if(argc != 4)
+		throw("usage: ./executable limitA limitB rectangles");
+	
 	//Definindo variaveis para marcar o tempo do algoritmo
 	double startTime, finishTime, totalTime;
 
@@ -145,9 +148,9 @@ int main(int argc, char** argv)
 
 	//Fazendo a marcação de tempo de inicialização(Por enquanto valores apenas como teste)
 	GET_TIME(startTime);
-	double integrationLimitA = 0;
-	double integrationLimitB = 1;
-	double numberRectangle = 100;
+	double integrationLimitA = atof(argv[1]);
+	double integrationLimitB = atof(argv[2]);
+	double numberRectangle = atof(argv[3]);
 	double approximateValueOfIntegral = 0;
 	double* sumPartialArea = malloc(sizeof(double));
 	GET_TIME(finishTime);
@@ -193,7 +196,7 @@ int main(int argc, char** argv)
 	}
 
 	//Exibindo resultado
-	printf("approximation to the integral %lf\n", approximateValueOfIntegral);
+	printf("approximation to the integral %.15lf\n", approximateValueOfIntegral);
 	return 0;
 
 }

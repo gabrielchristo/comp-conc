@@ -162,7 +162,7 @@ int main(int argc, char** argv)
 		GET_TIME(startTime);
 		approximateValueOfIntegral = calculateAreaRectagleSequential(integrationLimitA, integrationLimitB, numberRectangle);
 		GET_TIME(finishTime);
-		printf("Elapsed %lf seconds for sequential processing\n", finishTime - startTime);
+		printf("Elapsed %lf seconds for sequential processing\n\n", finishTime - startTime);
 		totalTime += (finishTime - startTime);
 	}
 	//Fazendo a marcação de tempo de desenvolvimento do algoritmo no modo paralelo
@@ -191,11 +191,12 @@ int main(int argc, char** argv)
 		}
 
 		GET_TIME(finishTime);
-		printf("Elapsed %lf seconds for parallel processing\n", finishTime - startTime);
+		printf("Elapsed %lf seconds for parallel processing\n\n", finishTime - startTime);
 		totalTime += (finishTime - startTime);
 	}
 
 	//Exibindo resultado
+	printf("total time elapsed %lf\n", totalTime);
 	printf("approximation to the integral %.15lf\n", approximateValueOfIntegral);
 	return 0;
 

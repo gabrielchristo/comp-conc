@@ -9,6 +9,7 @@ Alunos:
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <math.h>
 #include "timer.h"
 
 //Definindo o tipo dos argumentos executados pelas threads
@@ -16,7 +17,7 @@ typedef struct
 {
 	int idThread;
 	int	numberThread;
-	int numberRectangle;
+	long long int numberRectangle;
 	int integrationLimitA;
 	int integrationLimitB;
 } typeArgumentsThreads;
@@ -36,7 +37,7 @@ void throw(char* msg)
 }
 
 //Funcao para empacotar argumentos das thread
-typeArgumentsThreads* packArgumentsThreads(int idThread, int numberThread, int numberRectangle, double integrationLimitA, double integrationLimitB)
+typeArgumentsThreads* packArgumentsThreads(int idThread, int numberThread, long long int numberRectangle, double integrationLimitA, double integrationLimitB)
 {
 	//Definindo retorno da funcao
 	typeArgumentsThreads* arguments = malloc(sizeof(typeArgumentsThreads));
@@ -54,13 +55,14 @@ typeArgumentsThreads* packArgumentsThreads(int idThread, int numberThread, int n
 
 
 //Funcao para a execucao sequencial do problema
-double calculateAreaRectagleSequential(double integrationLimitA, double integrationLimitB, double numberRectangles)
+double calculateAreaRectagleSequential(double integrationLimitA, double integrationLimitB, long long int numberRectangles)
 {
 	//Definindo acumulador para o valor da area dos retangulos(aproximacao para a integral)
 	double partialSumOfRectagles = 0;
 
 	//Percorrendo os retangulos executados por essa thread
-	double intervalH = (integrationLimitB - integrationLimitA) / numberRectangles;
+	double intervalH = (double)(integrationLimitB - integrationLimitA) / numberRectangles;
+	intervalH = fabs(intervalH);
 	int indexRectangle;
 	for (indexRectangle = 0; indexRectangle < numberRectangles; indexRectangle++)
 	{
@@ -73,6 +75,7 @@ double calculateAreaRectagleSequential(double integrationLimitA, double integrat
 		double base = intervalH;
 		double height = integratingFunction(middleX);
 		double area = height * base;
+		//printf("area : %.15lf\n", area);
 
 		//Atualizando a variavel acumuladora
 		partialSumOfRectagles += area;
@@ -91,13 +94,14 @@ void* calculateAreaRectagleParallel(void* arguments)
 	int numberThreads = args->numberThread;
 	int integrationLimitA = args->integrationLimitA;
 	int integrationLimitB = args->integrationLimitB;
-	int numberRectangles = args->numberRectangle;
+	long long int numberRectangles = args->numberRectangle;
 
 	//Acumulador para a area dos retangulos calculados por essa thread
 	double* partialSumOfRectagles = calloc(1, sizeof(double));
 
 	//Percorrendo os retangulos executados por essa thread
 	double intervalH = (double)(integrationLimitB - integrationLimitA) / numberRectangles;
+	intervalH = fabs(intervalH);
 	int indexRectagle;
 	double partialSum = 0;
 	for (indexRectagle = idThread; indexRectagle < numberRectangles; indexRectagle += numberThreads)
@@ -111,6 +115,7 @@ void* calculateAreaRectagleParallel(void* arguments)
 		double base = intervalH;
 		double height = integratingFunction(middleX);
 		double area = height * base;
+		//printf("area : %.15lf\n", area);
 
 		//Atualizando a variavel acumuladora
 		partialSum += area;
@@ -149,7 +154,7 @@ int main(int argc, char** argv)
 	GET_TIME(startTime);
 	double integrationLimitA = atof(argv[1]);
 	double integrationLimitB = atof(argv[2]);
-	double numberRectangle = atof(argv[3]);
+	long long int numberRectangle = atoi(argv[3]);
 	double approximateValueOfIntegral = 0;
 	double* sumPartialArea = malloc(sizeof(double));
 	GET_TIME(finishTime);

@@ -1,0 +1,17 @@
+Atividade 1
+
+	2. Sim. Apesar da mudança na ordem de execução das threads, a lógica do programa é garantida pela variável de condição.
+	
+	3. Como a lógica para emissão do sinal na thread A nunca é satisfeita (x = 2), a thread B irá aguardar para sempre um sinal que não virá. Como na main estamos aguardando as threads finalizarem (devido ao join), o programa não vai terminar.
+	
+Atividade 2
+
+	2. Sim. A verificação e posicionamento da variável de condição está correta, garantindo a lógica do programa.
+	
+Atividade 3
+
+	2. Sim. A thread B printa uma única vez o valor de x, sendo este divisivel por 10.
+	
+	3. Não. Com essa mudança a thread B pode ser sinalizada, porém como só é feita uma verificação do valor de x, pode ocorrer de quando a thread B ser escalonada novamente para executar, termos um valor de x diferente (já tendo passado pela verificação única) levando a erros na lógica proposta.
+	
+	4. Não. Pelo motivo explicado acima, houveram erros quanto à lógica proposta. Um dos casos obtidos foi a thread B ter printado o valor de x = 22, mesmo este número não sendo divisivel por 10.

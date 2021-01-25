@@ -34,15 +34,12 @@ class Vector{
     //Metodo para printar vetor
     public void print()
     {
-        //Mensagem inicial
-        System.out.println("============================== Inicio Print ====================================");
 
         //Percorrendo vetor
         for(Integer element : this.vector)
-            System.out.println(element);
-
-        //Mensagem final
-        System.out.println("============================== Final Print =================================\n\n");
+            System.out.printf("%d ", element);
+		System.out.printf("\n\n");
+		
     }
 
 }
@@ -72,12 +69,14 @@ class ThreadVector extends Thread
     //Funcao executada pelas threads
     public void run()
     {
+		System.out.printf("Thread %d iniciada\n", this.id);
         //Percorrendo os indices apropriados para cada thread
         Integer sizeVector = this.vectors.getVectorResult().getSizeVector();
         for(int index = this.id; index < sizeVector; index+=this.numberThreads)
         {
             this.vectors.sumElement(index);
         }
+		System.out.printf("Thread %d finalizada\n", this.id);
     }
 }
 
@@ -166,7 +165,9 @@ public class Main
         fillsVector(vectors.getVectorPortionB());
 
         //Printando vetores
+		System.out.printf("Print vetor A\n");
         vectors.getVectorPortionA().print();
+		System.out.printf("Print vetor B\n");
         vectors.getVectorPortionB().print();
 
         //Inicializando vetor de threads
@@ -186,10 +187,12 @@ public class Main
             } catch (InterruptedException e)
             {
                 e.printStackTrace();
+				return;
             }
         }
 
         //Prinatando vetor de resultado da soma
+		System.out.printf("Print vetor resultado\n");
         vectors.getVectorResult().print();
     }
 }

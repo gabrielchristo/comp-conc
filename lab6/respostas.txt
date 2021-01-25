@@ -1,0 +1,16 @@
+Atividade 1
+
+	3 - Sim. Devido ao escalonamento que dá a vez de execução de maneira distinta às diferentes threads e portanto é aleatório.
+
+	5 - Agora a thread principal não termina o programa antes das demais threads. Ao executar o loop da linha 43 ele chama o método join para cada thread, cujo objetivo é aguardar a thread desejada finalizar sua execução. Como o join é chamado para todas as threads criadas a thread principal só termina depois de todas as outras threads.
+
+Atividade 3
+
+	1 - A seção crítica do código são os métodos inc() e get() da classe S, definidos nas linha 17 e 21 respectivamente (chamados nas linhas 54 e 86 respectivamente), por serem uma região de memória compartilhada entre as threads.
+	A saída esperada seria o número de incrementos feitos por cada thread multiplicado pelo número de threads (nesse caso com N = 2 temos como valor esperado N*100000 = 200000).
+
+	2 - Não. Os valores foram em certas rodadas menores devido a condição de corrida no método inc() da classe S. 
+
+Atividade 4
+
+	3 - Sim. Porque ao utilizar a palavra chave synchronized o método fica protegido por um mutex (mutual exclusion), garantindo acesso atômico e encerrando então a questão da condição de corrida.

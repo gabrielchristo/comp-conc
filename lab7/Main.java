@@ -1,197 +1,27 @@
-/*
- * Classe para modelar os elementos mannipulados pelos produtores e consumidores
- * */
-class Product
-{
-    //Id do produto
-    public Integer id;
-
-    //Elemento do produto
-    private Object element;
-
-    //Construtor da classe
-    public Product(Integer id)
-    {
-        this.element = new Object();
-        this.id = id;
-    }
-
-    //Metodo para setar objeto no produto
-    void setElement(Object newElement)
-    {
-        this.element = newElement;
-    }
-
-    //Metodo para imprimir produto
-    public void print()
-    {
-        System.out.println("Elemento: " + this.id + "\tProduto: " + this.element.toString());
-    }
-
-}
-
-/*
- * Classe para modelar o buffer que armazenara os produtos
- * */
-class Buffer
-{
-    //Definindo vetor de produtos
-    private Product[] productsVector;
-
-    //Indice da posicao apropriada para se retirar/inserir produtos
-    private Integer positionIndex;
-
-    //Construtor da classe
-    public Buffer(Integer sizeProductsVector)
-    {
-        this.productsVector = new Product[sizeProductsVector];
-        this.positionIndex = 0;
-    }
-
-    //Metodo para retornar tamanho do buffer
-    public Integer size()
-    {
-        return this.productsVector.length;
-    }
-
-    //Verifica se vetor esta vazio
-    public synchronized boolean isEmpty()
-    {
-        return this.positionIndex == 0;
-    }
-
-    //Verifica se vetor esta cheio
-    public synchronized boolean isFull()
-    {
-        return  this.positionIndex == this.productsVector.length;
-    }
-
-    //Metodo para inserir produtos dentro do buffer
-    public synchronized void insert(Product product)
-    {
-        try
-        {
-            //Verificando se buffer nao esta cheio
-            while(this.isFull())
-                this.wait();
-
-            //Inserindo produto na posicao apropriada
-            this.productsVector[this.positionIndex] = product;
-
-            //Atualizando indice do buffer
-            this.positionIndex++;
-
-            //Liberando as demais threads
-            this.notifyAll();
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-            return;
-        }
-    }
-
-    //Metodo para remover elementos do buffer
-    public synchronized Product remove()
-    {
-        try
-        {
-            //Verificando se buffer nao esta vazio
-            while(this.isEmpty())
-                this.wait();
-
-            //Atualizando indice do buffer
-            this.positionIndex--;
-
-            //Removendo produto na posicao apropriada
-            Product product = this.productsVector[this.positionIndex];
-
-            //Liberando as demais threads
-            this.notifyAll();
-
-            //Retornando elementos
-            return  product;
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    //Metodo para imprimir elementos do buffer
-    public void print()
-    {
-        System.out.println("=====");
-        for(Product currentProduct : this.productsVector)
-            currentProduct.print();
-    }
-}
-
-/*
- * Classe com os recursos compartilhado entre as threads
- * */
-class SharedResource
-{
-    //Buffer compartilhado entre as threads
-    private Buffer buffer;
-
-    //Quantidade de elementos que precisam ser criados
-    public Integer numberTotalProduct;
-
-    //Quantidade atual de elementos criados
-    private Integer currentNumberProduct;
-
-    //Construtor
-    public SharedResource(Integer sizeBuffer,Integer numberTotalProduct)
-    {
-        this.buffer = new Buffer(sizeBuffer);
-        this.numberTotalProduct = numberTotalProduct;
-        this.currentNumberProduct = 0;
-    }
-
-    //Getter do campo de buffer
-    public Buffer getBuffer()
-    {
-        return this.buffer;
-    }
-
-    //Getter para o campo currentNumberProduct
-    public synchronized Integer getCurrentNumberProduct()
-    {
-        return this.currentNumberProduct;
-    }
-
-    //Metodo para atualizar o quantidade atual de produtos criados
-    public synchronized void updateCurrentNumberProduct()
-    {
-        this.currentNumberProduct++;
-    }
-}
 
 /*
  * Classe das threads Produtoras
- * */
+ */
 class Producer extends Thread
 {
     //Id do Produtor
     public Integer id;
 
     //Recurso Compartilhado
-    private SharedResource sharedResource;
+    private Buffer sharedResource;
 
     //Construtor da classe
-    public Producer(Integer id,SharedResource sharedResource)
+    public Producer(Integer id, Buffer sharedResource)
     {
         this.id = id;
         this.sharedResource = sharedResource;
     }
 
     //Metodo para produzir um elemento
-    private synchronized Product createProduct(Integer idProduct)
+    private synchronized Integer createProduct(Integer idProduct)
     {
         //Criando um produto
-        Product product = new Product(idProduct);
+        Integer product = 1; // todo: create random number
 
         //Atualizando o numero de produtos criados
         this.sharedResource.updateCurrentNumberProduct();
@@ -210,10 +40,10 @@ class Producer extends Thread
         while(this.sharedResource.getCurrentNumberProduct() != this.sharedResource.numberTotalProduct)
         {
             //Criando um produto
-            Product product = this.createProduct(this.sharedResource.getCurrentNumberProduct());
+            Integer product = this.createProduct(this.sharedResource.getCurrentNumberProduct());
 
             //Inserindo o produto no buffer
-            this.sharedResource.getBuffer().insert(product);
+            this.sharedResource.insert(product);
         }
 
         //Encerrando a thread
@@ -230,20 +60,20 @@ class Consumer extends Thread
     public Integer id;
 
     //Recurso Compartilhado
-    private SharedResource sharedResource;
+    private Buffer sharedResource;
 
     //Construtor da classe
-    public Consumer(Integer id, SharedResource sharedResource)
+    public Consumer(Integer id, Buffer sharedResource)
     {
         this.id = id;
         this.sharedResource = sharedResource;
     }
 
     //Metodo para processar o produto
-    private void processesProduct(Product product)
+    private void processesProduct(Integer product)
     {
         //Printando o produto
-        product.print();
+        System.out.printf("Mostrando Int: %d\n", product);
     }
 
     //Metodo executado pelas threads
@@ -254,10 +84,10 @@ class Consumer extends Thread
 
         //Processando os elementos necessarios
         while((this.sharedResource.getCurrentNumberProduct() != this.sharedResource.numberTotalProduct)
-        && (!this.sharedResource.getBuffer().isEmpty()))
+        && (!this.sharedResource.isEmpty()))
         {
             //Pegando um produto do buffer
-            Product product = this.sharedResource.getBuffer().remove();
+            Integer product = this.sharedResource.remove();
 
             //Processando o produto
             this.processesProduct(product);
@@ -276,10 +106,10 @@ class Consumer extends Thread
 public class Main
 {
     //Definindo variaveis
-    static final Integer numberProduct = 30;
-    static final Integer numberConsumer = 5;
-    static final Integer numberProducer = 5;
-    static final Integer sizeBuffer = 4;
+    static final Integer numberProduct = 30; // limite de produtos a serem produzidos
+    static final Integer numberConsumer = 5; // total de consumidores
+    static final Integer numberProducer = 5; // total de produtores
+    static final Integer sizeBuffer = 4; // tamanho do buffer
 
     //Funcao principal
     public static void main(String[] args)
@@ -289,7 +119,7 @@ public class Main
         Thread[] consumer = new Thread[numberConsumer];
 
         //Criando recursos compartilhado entre as threads
-        SharedResource sharedResource = new SharedResource(sizeBuffer,numberProduct);
+        Buffer sharedResource = new Buffer(sizeBuffer,numberProduct);
 
         //Inicializando produtores
         for(int indexProducer = 0; indexProducer < producer.length; indexProducer++)

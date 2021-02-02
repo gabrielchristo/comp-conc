@@ -7,6 +7,16 @@ class Global
     public static final Integer numberConsumer = 5; // total de consumidores
     public static final Integer numberProducer = 5; // total de produtores
     public static Integer currentProductCreated = 0;
+	
+	public static synchronized Integer getCrrtProductCreated()
+	{
+		return Global.currentProductCreated;
+	}
+	
+	public static synchronized void incrementCrrtProductCreated()
+	{
+		Global.currentProductCreated++;
+	}
 }
 
 /*
@@ -34,10 +44,10 @@ class Producer extends Thread
     private synchronized Integer createProduct()
     {
         //Criando um produto
-        Integer product = random.nextInt(9); // todo: create random number
+        Integer product = random.nextInt(20);
 
         //Atualizando o numero de produtos criados
-        Global.currentProductCreated++;
+        Global.incrementCrrtProductCreated();
 
         //Retornando o produto
         return product;
@@ -47,7 +57,7 @@ class Producer extends Thread
     public void run()
     {
         //Produzindo os elementos necessarios
-        while(Global.currentProductCreated < Global.numberProduct)
+        while(Global.getCrrtProductCreated() < Global.numberProduct)
         {
             //Criando um produto
             Integer product = this.createProduct();
@@ -80,14 +90,10 @@ class Consumer extends Thread
     public void run()
     {
         // checando limite de processos e se buffer tem algum produto
-		// (Global.currentProductCreated < Global.numberProduct) &&
-        while(  (this.sharedResource.freePositions() > 0) )
+        while(  Global.getCrrtProductCreated() < Global.numberProduct )
         {	
             //Pegando um produto do buffer
             Integer product = this.sharedResource.Remove();
-
-            //Processando o produto
-            //System.out.printf("Mostrando Int: %d\n", product);
         }
     }
 }
@@ -110,26 +116,23 @@ public class Main
 
         //Criando recursos compartilhado entre as threads
         Buffer sharedResource = new Buffer();
-
-        //Inicializando produtores
-        for(int indexProducer = 0; indexProducer < producer.length; indexProducer++)
-            producer[indexProducer] = new Producer(indexProducer,sharedResource);
-
-        //Inicializando consumidores
-        for(int indexConsumer = 0; indexConsumer < producer.length; indexConsumer++)
-            consumer[indexConsumer] = new Consumer(indexConsumer,sharedResource);
-
+		
 		System.out.println("import Corretude");
 		System.out.println("c = Corretude.CheckingModule()");
 		System.out.println("c.setSize(5)");
 		
-        //Iniciando a execucao dos produtores
-        for(int indexProducer = 0; indexProducer < producer.length; indexProducer++)
-            producer[indexProducer].start();
+		//Inicializando consumidores
+        for(int indexConsumer = 0; indexConsumer < producer.length; indexConsumer++){
+            consumer[indexConsumer] = new Consumer(indexConsumer,sharedResource);
+			consumer[indexConsumer].start();
+		}
 
-        //Iniciando a execucao dos consumidores
-        for(int indexConsumer = 0; indexConsumer < producer.length; indexConsumer++)
-            consumer[indexConsumer].start();
+        //Inicializando produtores
+        for(int indexProducer = 0; indexProducer < producer.length; indexProducer++){
+            producer[indexProducer] = new Producer(indexProducer,sharedResource);
+			producer[indexProducer].start();
+		}
+            
 
         //Aguardando produtores terminarem
         for(int indexProducer = 0; indexProducer < producer.length; indexProducer++)
@@ -156,8 +159,6 @@ public class Main
                 return;
             }
         }
-
-   
 
     }
 }

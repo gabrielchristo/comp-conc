@@ -13,7 +13,7 @@ class Buffer {
     //Metodo para retornar tamanho do buffer
     public synchronized Integer freePositions()
     {
-        return this.count;
+        return N - this.count;
     }
 
 

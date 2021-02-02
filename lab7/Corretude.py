@@ -29,15 +29,5 @@ class CheckingModule():
 		if(self.freePos > 0):
 			print("Erro: produtor bloqueou sendo que o buffer tem espaco disponivel")
 		
-	#def bufferVazio(self) -> bool:
-	#	if(self.freePos < self.size):
-	#		print("Erro: buffer nao esta vazio")
-	#		return False
-	#	return True
-		
-	#def bufferCheio(self) -> bool:
-	#	if(self.freePos > 0):
-	#		print("Erro: buffer nao esta cheio")
-	#		return False
-	#	return True
+	
 		

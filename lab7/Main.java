@@ -1,4 +1,17 @@
 
+
+class Global
+{
+    //Definindo variaveis
+    public static final Integer numberProduct = 30; // limite de produtos a serem produzidos
+    public static final Integer numberConsumer = 5; // total de consumidores
+    public static final Integer numberProducer = 5; // total de produtores
+
+    public static Integer currentProductCreated = 0;
+}
+
+
+
 /*
  * Classe das threads Produtoras
  */
@@ -24,7 +37,8 @@ class Producer extends Thread
         Integer product = 1; // todo: create random number
 
         //Atualizando o numero de produtos criados
-        this.sharedResource.updateCurrentNumberProduct();
+        Global.currentProductCreated++;
+        // this.sharedResource.updateCurrentNumberProduct();
 
         //Retornando o produto
         return product;
@@ -37,13 +51,13 @@ class Producer extends Thread
         System.out.printf("Thread Produtora %d iniciada\n", this.id);
 
         //Produzindo os elementos necessarios
-        while(this.sharedResource.getCurrentNumberProduct() != this.sharedResource.numberTotalProduct)
+        while(Global.currentProductCreated < Global.numberProduct)
         {
             //Criando um produto
-            Integer product = this.createProduct(this.sharedResource.getCurrentNumberProduct());
+            Integer product = this.createProduct(Global.currentProductCreated);
 
             //Inserindo o produto no buffer
-            this.sharedResource.insert(product);
+            this.sharedResource.Insere(product);
         }
 
         //Encerrando a thread
@@ -83,11 +97,11 @@ class Consumer extends Thread
         System.out.printf("Thread Consumidora %d iniciada\n", this.id);
 
         //Processando os elementos necessarios
-        while((this.sharedResource.getCurrentNumberProduct() != this.sharedResource.numberTotalProduct)
-        && (!this.sharedResource.isEmpty()))
+        while((Global.currentProductCreated < Global.numberProduct)
+                && (this.sharedResource.size() > 0))
         {
             //Pegando um produto do buffer
-            Integer product = this.sharedResource.remove();
+            Integer product = this.sharedResource.Remove();
 
             //Processando o produto
             this.processesProduct(product);
@@ -101,25 +115,21 @@ class Consumer extends Thread
 
 
 /*
-* Classe da funçao principal
-* */
+ * Classe da funçao principal
+ * */
 public class Main
 {
-    //Definindo variaveis
-    static final Integer numberProduct = 30; // limite de produtos a serem produzidos
-    static final Integer numberConsumer = 5; // total de consumidores
-    static final Integer numberProducer = 5; // total de produtores
-    static final Integer sizeBuffer = 4; // tamanho do buffer
+
 
     //Funcao principal
     public static void main(String[] args)
     {
         //Criando Produtores e consumidores
-        Thread[] producer = new Thread[numberProducer];
-        Thread[] consumer = new Thread[numberConsumer];
+        Thread[] producer = new Thread[Global.numberProducer];
+        Thread[] consumer = new Thread[Global.numberConsumer];
 
         //Criando recursos compartilhado entre as threads
-        Buffer sharedResource = new Buffer(sizeBuffer,numberProduct);
+        Buffer sharedResource = new Buffer();
 
         //Inicializando produtores
         for(int indexProducer = 0; indexProducer < producer.length; indexProducer++)
@@ -162,6 +172,14 @@ public class Main
                 return;
             }
         }
+
+        /*Buffer buffer = new Buffer(10,3);
+
+        buffer.insert(0);
+        buffer.insert(1);
+        //buffer.insert(2);
+
+        buffer.print();*/
 
     }
 }

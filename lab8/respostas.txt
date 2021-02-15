@@ -1,5 +1,5 @@
 Atividade 1
 
-a) Todos os semáforos devem inicializar com valor 1, por se tratar de um mecanismo de exclusão mútua neste problema
+a) Todos os semáforos devem inicializar com valor 1, por se tratar de um mecanismo de exclusão mútua neste problema (agindo como um mutex)
 
 b) Não. Devido a prioridade para escrita se torna necessário a utilização dos 4 semáforos definidos

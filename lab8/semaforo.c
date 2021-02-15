@@ -20,7 +20,8 @@ void throw(char* msg)
 void show(int id, char* msg)
 {
 	char* type = id <= READERS ? "L" : "E"; // checando pelo id se e thread leitora ou escritora
-	printf("[%s%d] %s\n", type, id, msg);
+	int newid = id <= READERS ? id : id - READERS;
+	printf("[%s%d] %s\n", type, newid, msg);
 }
 
 void* leitor(void* arg)
@@ -30,6 +31,7 @@ void* leitor(void* arg)
 	
 	while(cycle < CYCLES)
 	{
+		show(id, "aguardando para poder ler");
 		sem_wait(&leit); // bloqueando leitura devido prioridade para escrita
 		
 		sem_wait(&em_l); // mutex leitura

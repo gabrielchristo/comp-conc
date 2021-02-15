@@ -3,3 +3,5 @@ Atividade 1
 a) Todos os semáforos devem inicializar com valor 1, por se tratar de um mecanismo de exclusão mútua neste problema (agindo como um mutex)
 
 b) Não. Devido a prioridade para escrita se torna necessário a utilização dos 4 semáforos definidos
+
+e) Substituímos os dois semáforos binários utilizados no decremento/incremento da quantidade de leitores/escritores. Já os outros dois semáforos, não puderam ser substituídos por locks devido a lógica de prioridade para os escritores. Como os locks chamam o método unlock logo após sair da região crítica, ele não é recursivo (em nenhum momento chama o lock mais de uma vez sem ter desbloqueado o mutex).

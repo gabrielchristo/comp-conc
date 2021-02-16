@@ -7,6 +7,13 @@ Danilo Santos Vieira - 115103034
 
 ### Arquitetura
 
+ThreadPool
+
+ArrayBlockingQueue (implementa a interface BlockingQueue)
+
+
+pior caso -> n^2 tarefas
+
 
 ### Utilização
 

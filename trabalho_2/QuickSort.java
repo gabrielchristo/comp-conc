@@ -1,3 +1,4 @@
+
 import java.util.Random;
 import java.util.Arrays;
 
@@ -28,7 +29,6 @@ class QuickSort
 		System.out.println(Arrays.toString(this.array));
 	}
 	
-	
 	public static void main(String[] args)
 	{
 		// checando tamanho do vetor de argumentos
@@ -37,10 +37,15 @@ class QuickSort
 			System.exit(1);
 		}
 		
+		long start = System.currentTimeMillis();
+		
 		// criando objeto quicksort (vai criar array de tamanho desejado)
 		int arraySize = Integer.parseInt(args[0]);
 		QuickSort qs = new QuickSort(arraySize);
 		qs.printArray();
+		
+		long end = System.currentTimeMillis();
+		System.out.printf("Elapsed time: %d ms\n", end - start);
 		
 		
 	}

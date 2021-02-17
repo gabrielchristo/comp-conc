@@ -1,8 +1,7 @@
 import java.util.Random;
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
-// classe responsavel pela inicializacao do vetor de inteiros e thread pool
+// classe responsavel pela inicializacao do vetor de inteiros, thread pool e runnable do algoritmo
 class QuickSort
 {
 	private static final int maxArrayValue = 50; // valor maximo sorteado pelo random
@@ -56,8 +55,8 @@ class QuickSort
 		long start = System.currentTimeMillis();
 		
 		// runnable principal
-		QuickSortWorkerModified qswm = new QuickSortWorkerModified(qs.array, 0, arraySize - 1, threadPool);
-		qswm.sort();
+		AlgorithmRunnable ar = new AlgorithmRunnable(qs.array, 0, arraySize - 1, threadPool);
+		ar.start();
 		
 		//threadPool.waitUntilAllTasksFinished();
 		//threadPool.stop();

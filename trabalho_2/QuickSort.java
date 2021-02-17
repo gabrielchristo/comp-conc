@@ -1,12 +1,13 @@
-
 import java.util.Random;
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 
+// classe responsavel pela inicializacao do vetor de inteiros e thread pool
 class QuickSort
 {
-	private static final int maxArrayValue = 50; ///< valor maximo sorteado pelo random
-	private Random random; ///< objeto random
-	private int[] array; ///< vetor de inteiros
+	private static final int maxArrayValue = 50; // valor maximo sorteado pelo random
+	private Random random; // objeto random
+	public int[] array; // vetor de inteiros
 	
 	// construtor
 	public QuickSort(int arraySize)
@@ -24,28 +25,60 @@ class QuickSort
 	}
 	
 	// imprime os valores do array
-	void printArray()
+	public static void printArray(int[] array)
 	{
-		System.out.println(Arrays.toString(this.array));
+		System.out.println(Arrays.toString(array));
 	}
 	
 	public static void main(String[] args)
 	{
 		// checando tamanho do vetor de argumentos
-		if(args.length != 1){
-			System.out.println("Usage: java QuickSort arraySize");
+		if(args.length != 2){
+			System.out.println("Usage: java QuickSort arraySize threadsNumber");
 			System.exit(1);
 		}
 		
-		long start = System.currentTimeMillis();
+		// convertendo argumentos (strings) para inteiros
+		int arraySize = Integer.parseInt(args[0]);
+		int threadsNumber = Integer.parseInt(args[1]);
+		
+		// criando objeto thread pool
+		// alocamos o vetor de tarefas com o pior caso possivel de ordenacao: n^2 ??????????????????????
+		ThreadPool threadPool = new ThreadPool(threadsNumber, arraySize * arraySize);
+		
+		
+		
+		// teste
+		//for(int i=0; i<10; i++) {
+        //    int taskNo = i;
+        //    threadPool.execute( () -> {
+        //        String message = Thread.currentThread().getName() + ": Task " + taskNo ;
+        //        System.out.println(message);
+        //    });
+        //}
+		//threadPool.waitUntilAllTasksFinished();
+		//threadPool.stop();
+		
+		
 		
 		// criando objeto quicksort (vai criar array de tamanho desejado)
-		int arraySize = Integer.parseInt(args[0]);
 		QuickSort qs = new QuickSort(arraySize);
-		qs.printArray();
+		QuickSort.printArray(qs.array);
 		
+		// checando tempo de inicio da ordenacao
+		long start = System.currentTimeMillis();
+		
+		QuickSortWorkerModified qswm = new QuickSortWorkerModified(qs.array, 0, arraySize - 1, new CountDownLatch(arraySize));
+		
+		qswm.setThreadPool(threadPool);
+		
+		qswm.sort();
+		
+		// checando tempo de fim da ordenacao
 		long end = System.currentTimeMillis();
 		System.out.printf("Elapsed time: %d ms\n", end - start);
+		
+		QuickSort.printArray(qs.array);
 		
 		
 	}

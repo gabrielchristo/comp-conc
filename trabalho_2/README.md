@@ -7,31 +7,25 @@ Danilo Santos Vieira - 115103034
 
 ### Arquitetura
 
-ThreadPool
-
-ArrayBlockingQueue (implementa a interface BlockingQueue)
-
-
-pior caso -> n^2 tarefas
+Foi utilizado o conceito de ThreadPool, onde temos um determinado número de threads reutilizável, podendo executar diversas tarefas diferentes.
 
 
 ### Utilização
 
 ```
-javac quicksort.java
-java QuickSort desiredArraySize
+javac *.java
+java QuickSort desiredArraySize desiredThreadsNumber
 ```
 
-
 ### Casos de teste
-* tabela com vetor/tempo de ordenação
-
-
-
-
 
 
 
 
 TODO:
+* tabela com vetor/tempo de ordenação
 pool de threads ?
+ArrayBlockingQueue (implementa a interface BlockingQueue)
+pior caso -> n^2 tarefas
+
+problema: como saber o momento exato de parar as threads dos runnables

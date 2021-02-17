@@ -33,15 +33,14 @@ public class RunnableQueue
         //Verificando se a fila esta vazia
         while(this.isEmpty())
         {
-            try
-            {
-                System.out.println("Thread Bloqueada ");
+            try {
+                //System.out.println("Thread Bloqueada");
                 this.wait();
-            } catch (InterruptedException e)
-            {
-                e.printStackTrace();
+            } catch (InterruptedException e) {
+				return null;
             }
         }
+		// remove e retorna primeiro elemento da lista
         return this.queue.remove(0);
     }
 
@@ -56,7 +55,7 @@ public class RunnableQueue
     {
         for(Runnable runnable : this.queue)
         {
-            System.out.println(runnable);
+            System.out.println(runnable.toString());
         }
     }
 }

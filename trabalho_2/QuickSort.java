@@ -4,7 +4,7 @@ import java.util.Arrays;
 // classe responsavel pela inicializacao do vetor de inteiros, thread pool e runnable do algoritmo
 class QuickSort
 {
-	private static final int maxArrayValue = 50; // valor maximo sorteado pelo random
+	private static final int maxArrayValue = 100; // valor maximo sorteado pelo random
 	private Random random; // objeto random
 	public int[] array; // vetor de inteiros
 	
@@ -12,7 +12,14 @@ class QuickSort
 	public QuickSort(int arraySize)
 	{
 		this.random = new Random();
-		this.array = new int[arraySize];
+		
+		try {
+			this.array = new int[arraySize];
+		} catch(OutOfMemoryError err) {
+			System.out.println("Sem memoria disponivel para alocar array desse tamanho");
+			System.exit(1);
+		}
+		
 		this.initArrayWithRandomValues();
 	}
 	
@@ -24,9 +31,9 @@ class QuickSort
 	}
 	
 	// imprime os valores do array
-	public static void printArray(int[] array)
+	public void printArray()
 	{
-		System.out.println(Arrays.toString(array));
+		System.out.println(Arrays.toString(this.array));
 	}
 	
 	public static void main(String[] args)
@@ -42,14 +49,13 @@ class QuickSort
 		int threadsNumber = Integer.parseInt(args[1]);
 		
 		// criando objeto thread pool
-		// alocamos o vetor de tarefas com o pior caso possivel de ordenacao: n^2 ??????????????????????
-		ThreadPool threadPool = new ThreadPool(threadsNumber, arraySize * arraySize);
+		ThreadPool threadPool = new ThreadPool(threadsNumber);
 		
 		// criando objeto quicksort (vai criar array de tamanho desejado)
 		QuickSort qs = new QuickSort(arraySize);
 		
 		// imprimindo array sorteado
-		QuickSort.printArray(qs.array);
+		//qs.printArray();
 		
 		// checando tempo de inicio da ordenacao
 		long start = System.currentTimeMillis();
@@ -58,19 +64,24 @@ class QuickSort
 		AlgorithmRunnable ar = new AlgorithmRunnable(qs.array, 0, arraySize - 1, threadPool);
 		ar.start();
 		
-		//threadPool.waitUntilAllTasksFinished();
-		//threadPool.stop();
+		// quando o algoritmo finalizar encerramos o thread pool
+		while(!ar.isFinished()) {
+			try {
+                Thread.sleep(1); // dormindo 1ms
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+		}
+		// parando thread pool
+		threadPool.stop();
 		
 		// checando tempo de fim da ordenacao
 		long end = System.currentTimeMillis();
 		System.out.printf("Elapsed time: %d ms\n", end - start);
 		
 		// mostrando array ordenado
-		QuickSort.printArray(qs.array);
-		
+		//qs.printArray();
 		
 	}
-	
-	
 	
 }

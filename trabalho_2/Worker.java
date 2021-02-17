@@ -1,14 +1,13 @@
-import java.util.concurrent.ArrayBlockingQueue;
 
 // classe responsavel por pegar e executar as tarefas da fila
 class Worker implements Runnable
 {
-	private ArrayBlockingQueue queue; // estrutura de fila recebida da thread pool
+	private RunnableQueue queue; // estrutura de fila recebida da thread pool	
 	private Thread thread; // thread atual
 	private boolean isStopped = false; // variavel auxiliar com estado de execucao da thread
 	
 	// construtor
-	public Worker(ArrayBlockingQueue queue)
+	public Worker(RunnableQueue queue)
 	{
 		this.queue = queue;
 	}
@@ -19,20 +18,18 @@ class Worker implements Runnable
         this.thread = Thread.currentThread();
         
 		while(!isStopped()){
-            try{
-                Runnable runnable = (Runnable) this.queue.take();
-                runnable.run();
-            } catch(InterruptedException e){
-                e.printStackTrace();
-            }
+			Runnable runnable = this.queue.pop();
+			// se for null a fila de tarefas esta vazia
+			if(runnable != null)
+				runnable.run();
         }
     }
-
+	
 	// interrompe execucao da thread
     public synchronized void stop()
 	{
         this.isStopped = true;
-        this.thread.interrupt();
+		this.thread.interrupt();
     }
 
 	// retorna se thread esta parada

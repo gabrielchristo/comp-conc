@@ -6,7 +6,7 @@ class ThreadPool
 {
 	private ArrayBlockingQueue<Runnable> queue; // estrutura de fila thread-safe contendo os runnables a serem executados pelas threads
 	
-	private ArrayList<QuickSortWorker> runnables = new ArrayList<>(); // lista com workers executores
+	private ArrayList<Worker> runnables = new ArrayList<>(); // lista com workers executores
 
 	// construtor
 	public ThreadPool(int threadsNumber, int maxQueueTasks)
@@ -16,13 +16,13 @@ class ThreadPool
 		// inicializando workers e adicionando no arraylist
 		for(int i = 0; i < threadsNumber; i++)
 		{
-            QuickSortWorker qsw = new QuickSortWorker(this.queue);
-            runnables.add(qsw);
+            Worker w = new Worker(this.queue);
+            runnables.add(w);
         }
 		
 		// criando threads dos workers
-        for(QuickSortWorker runnable : runnables)
-            new Thread(runnable).start();
+        for(Worker w : runnables)
+            new Thread(w).start();
 		
 	}
 	
@@ -42,15 +42,15 @@ class ThreadPool
 	// interrompe execucao de todos os workers
 	public synchronized void stop()
 	{
-		for(QuickSortWorker runnable : runnables)
-            runnable.stop();
+		for(Worker w : runnables)
+            w.stop();
 	}
 	
-	
+	// aguarda fila ficar vazia para finalizar workers
 	public synchronized void waitUntilAllTasksFinished() {
         while(this.queue.size() > 0) {
             try {
-                Thread.sleep(1);
+                Thread.sleep(1); // 1ms
             } catch (Exception e) {
                 e.printStackTrace();
             }

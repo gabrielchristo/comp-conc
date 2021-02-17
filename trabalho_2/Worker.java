@@ -1,14 +1,14 @@
 import java.util.concurrent.ArrayBlockingQueue;
 
 // classe responsavel por pegar e executar as tarefas da fila
-class QuickSortWorker implements Runnable
+class Worker implements Runnable
 {
 	private ArrayBlockingQueue queue; // estrutura de fila recebida da thread pool
 	private Thread thread; // thread atual
 	private boolean isStopped = false; // variavel auxiliar com estado de execucao da thread
 	
 	// construtor
-	public QuickSortWorker(ArrayBlockingQueue queue)
+	public Worker(ArrayBlockingQueue queue)
 	{
 		this.queue = queue;
 	}
@@ -26,9 +26,6 @@ class QuickSortWorker implements Runnable
                 e.printStackTrace();
             }
         }
-		
-		// todo: quicksort
-		// vai pegar dados da fila e fazer o tratamento
     }
 
 	// interrompe execucao da thread

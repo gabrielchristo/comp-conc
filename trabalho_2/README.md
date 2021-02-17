@@ -9,6 +9,10 @@ Danilo Santos Vieira - 115103034
 
 Foi utilizado o conceito de ThreadPool, onde temos um determinado número de threads reutilizável, podendo executar diversas tarefas diferentes.
 
+ThreadPool - interface com a piscina de threads e fila de tarefas a serem executadas
+Worker - runnable responsável por pegar e executar as tarefas da fila
+QuickSort - runnable que inicializa o algoritmo quicksort e vai colocando as chamadas recursivas na fila de tarefas do thread pool
+
 
 ### Utilização
 
@@ -24,8 +28,9 @@ java QuickSort desiredArraySize desiredThreadsNumber
 
 TODO:
 * tabela com vetor/tempo de ordenação
-pool de threads ?
+
 ArrayBlockingQueue (implementa a interface BlockingQueue)
 pior caso -> n^2 tarefas
 
 problema: como saber o momento exato de parar as threads dos runnables
+* join na chamada principal e subchamads

@@ -46,38 +46,27 @@ class QuickSort
 		// alocamos o vetor de tarefas com o pior caso possivel de ordenacao: n^2 ??????????????????????
 		ThreadPool threadPool = new ThreadPool(threadsNumber, arraySize * arraySize);
 		
-		
-		
-		// teste
-		//for(int i=0; i<10; i++) {
-        //    int taskNo = i;
-        //    threadPool.execute( () -> {
-        //        String message = Thread.currentThread().getName() + ": Task " + taskNo ;
-        //        System.out.println(message);
-        //    });
-        //}
-		//threadPool.waitUntilAllTasksFinished();
-		//threadPool.stop();
-		
-		
-		
 		// criando objeto quicksort (vai criar array de tamanho desejado)
 		QuickSort qs = new QuickSort(arraySize);
+		
+		// imprimindo array sorteado
 		QuickSort.printArray(qs.array);
 		
 		// checando tempo de inicio da ordenacao
 		long start = System.currentTimeMillis();
 		
-		QuickSortWorkerModified qswm = new QuickSortWorkerModified(qs.array, 0, arraySize - 1, new CountDownLatch(arraySize));
-		
-		qswm.setThreadPool(threadPool);
-		
+		// runnable principal
+		QuickSortWorkerModified qswm = new QuickSortWorkerModified(qs.array, 0, arraySize - 1, threadPool);
 		qswm.sort();
+		
+		//threadPool.waitUntilAllTasksFinished();
+		//threadPool.stop();
 		
 		// checando tempo de fim da ordenacao
 		long end = System.currentTimeMillis();
 		System.out.printf("Elapsed time: %d ms\n", end - start);
 		
+		// mostrando array ordenado
 		QuickSort.printArray(qs.array);
 		
 		

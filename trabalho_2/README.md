@@ -1,4 +1,4 @@
-# Trabalho 2 - ComputaÁ„o Concorrente
+Ôªø# Trabalho 2 - Computa√ß√£o Concorrente
 ## Quicksort paralelo
 
 Gabriel Martins Machado Christo - 117217732
@@ -7,20 +7,20 @@ Danilo Santos Vieira - 115103034
 
 ### Arquitetura
 
-O trabalho foi inteiramente desenvolvido em Java. Foi utilizado o conceito de ThreadPool, onde temos um determinado n˙mero de threads reutiliz·vel, podendo executar diversas tarefas diferentes.
+O trabalho foi inteiramente desenvolvido em Java. Foi utilizado o conceito de ThreadPool, onde temos um determinado n√∫mero de threads reutiliz√°vel, podendo executar diversas tarefas diferentes.
 
 RunnableQueue - estrutura de dados em fila thread-safe para serem inseridas/removidas as tarefas do algoritmo.
 
 ThreadPool - interface com a piscina de threads e fila de tarefas a serem executadas.
 
-Worker - runnable respons·vel por pegar e executar as tarefas da fila.
+Worker - runnable respons√°vel por pegar e executar as tarefas da fila.
 
 AlgorithmRunnable - runnable que inicializa o algoritmo quicksort e vai colocando as chamadas recursivas na fila de tarefas do thread pool.
 
-QuickSort - classe principal que inicializa o array com valores aleatÛrios, thread pool e a chamada prim·ria do AlgorithmRunnable.
+QuickSort - classe principal que inicializa o array com valores aleat√≥rios, thread pool e a chamada prim√°ria do AlgorithmRunnable.
 
 
-### UtilizaÁ„o
+### Utiliza√ß√£o
 
 ```
 javac *.java -Xlint:unchecked -g
@@ -41,9 +41,9 @@ java QuickSort tamanhoDoArray numeroDeThreads
 | 10^7                     | 0,080424 s     | 0,077513 s | 0,059903 s |
 | 10^8                     | 0,439504 s     | 0,285185 s | 0,171490 s |
 
-Como visto, apenas a partir de 10^7 elementos obtivemos desempenho melhor utilizando multithreading. Acreditamos que o overhead da criaÁ„o dos objetos AlgorithmRunnable possa estar impactando um melhor ganho de desempenho.
+Como visto, apenas a partir de 10^7 elementos obtivemos desempenho melhor utilizando multithreading. Acreditamos que o overhead da cria√ß√£o dos objetos AlgorithmRunnable possa estar impactando um melhor ganho de desempenho.
 
-N„o foi possÌvel efetuar testes com mais do que 10^9 elementos no vetor, pois acima desse valor extrapolamos o tamanho da heap alocada pela m·quina virtual do java, gerando a exception OutOfMemoryError.
+N√£o foi poss√≠vel efetuar testes com mais do que 10^9 elementos no vetor, pois acima desse valor extrapolamos o tamanho da heap alocada pela m√°quina virtual do java, gerando a exception OutOfMemoryError.
 
-Em relaÁ„o ao desenvolvimento foi muito interessante poder estudar e implementar o padr„o thread pool, alÈm de definir a estrutura geral do trabalho.
+Em rela√ß√£o ao desenvolvimento foi muito interessante poder estudar e implementar o padr√£o thread pool, al√©m de definir a estrutura geral do trabalho.
 

@@ -29,7 +29,8 @@ class Worker implements Runnable
     public synchronized void stop()
 	{
         this.isStopped = true;
-		this.thread.interrupt();
+		if(this.thread != null)
+			this.thread.interrupt();
     }
 
 	// retorna se thread esta parada

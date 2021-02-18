@@ -58,7 +58,7 @@ class QuickSort
 		//qs.printArray();
 		
 		// checando tempo de inicio da ordenacao
-		long start = System.currentTimeMillis();
+		long start = System.nanoTime();
 		
 		// runnable principal
 		AlgorithmRunnable ar = new AlgorithmRunnable(qs.array, 0, arraySize - 1, threadPool);
@@ -76,8 +76,8 @@ class QuickSort
 		threadPool.stop();
 		
 		// checando tempo de fim da ordenacao
-		long end = System.currentTimeMillis();
-		System.out.printf("Elapsed time: %d ms\n", end - start);
+		long end = System.nanoTime();
+		System.out.printf("Elapsed time: %f s\n", (end - start)/1.0E9);
 		
 		// mostrando array ordenado
 		//qs.printArray();

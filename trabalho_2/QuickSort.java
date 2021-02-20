@@ -57,30 +57,41 @@ class QuickSort
 		// imprimindo array sorteado
 		//qs.printArray();
 		
+		// runnable principal
+		AlgorithmRunnable ar = new AlgorithmRunnable(qs.array, 0, arraySize - 1, threadPool);
+		
 		// checando tempo de inicio da ordenacao
 		long start = System.nanoTime();
 		
-		// runnable principal
-		AlgorithmRunnable ar = new AlgorithmRunnable(qs.array, 0, arraySize - 1, threadPool);
 		ar.start();
 		
-		// quando o algoritmo finalizar encerramos o thread pool
-		while(!ar.isFinished()) {
-			try {
-                Thread.sleep(1); // dormindo 1ms
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+		while(!threadPool.timeout){ 
+			; // nao faz nada na thread principal enquanto algoritmo esta executando no thread pool
 		}
-		// parando thread pool
-		threadPool.stop();
+		System.out.println("Threads finalizaram");
 		
 		// checando tempo de fim da ordenacao
 		long end = System.nanoTime();
-		System.out.printf("Elapsed time: %f s\n", (end - start)/1.0E9);
 		
 		// mostrando array ordenado
 		//qs.printArray();
+		
+		// imprimindo tempo de execucao em segundos
+		double executionTime = (end - start)/1.0E9; // segundos
+		double awaitingTime = ((double)ThreadPool.timerInterval/1000) * ThreadPool.maxKeepAlive; // segundos de espera do timeout para normalizar o valor
+		
+		System.out.printf("Total: %f s Keep Alive: %f s\n", executionTime, awaitingTime);
+		
+		System.out.printf("Tempo de execucao: %f s\n", executionTime - awaitingTime);
+		
+		// teste de corretude
+		boolean isCorrect = true;
+		for(int i = 0; i < arraySize - 1; i++)
+			if(qs.array[i] > qs.array[i+1]){
+				isCorrect = false;
+				break;
+			}
+		System.out.printf(isCorrect ? "Ordenacao concluida com sucesso\n" : "Erro na ordenacao\n");
 		
 	}
 	

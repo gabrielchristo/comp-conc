@@ -7,7 +7,6 @@ class AlgorithmRunnable implements Runnable
 	private int first; // primeiro indice do subarray atual
 	private int last; // ultimo indice do subarray atual
 	private ThreadPool threadPool; // instancia de thread pool para spawn de novas tarefas
-	private boolean finished; // variavel de controle para finalizacao das threads
 	
 	// construtor
 	public AlgorithmRunnable(int[] array, int first, int last, ThreadPool threadPool)
@@ -16,20 +15,15 @@ class AlgorithmRunnable implements Runnable
 		this.first = first;
 		this.last = last;
 		this.threadPool = threadPool;
-		this.finished = false;
 	}
 	
 	// inicializa recursao
     public void start()
 	{
+		threadPool.startTimer();
         threadPool.execute(this);
+		System.out.println("Ordenando");
     }
-	
-	// getter da variavel finished
-	public boolean isFinished()
-	{
-		return this.finished;
-	}
 	
 	// troca dois elementos de lugar em um vetor de inteiros
 	public synchronized void swap(int[] array, int i, int j)
@@ -37,6 +31,7 @@ class AlgorithmRunnable implements Runnable
 		int temp = array[i];
 		array[i] = array[j];
 		array[j] = temp;
+		threadPool.keepAlive = 0; // resetando keepAlive a cada operacao de swap
 	}
 	
 	// metodo executado pela thread
@@ -49,8 +44,9 @@ class AlgorithmRunnable implements Runnable
 		int pivot = first + (last - first)/2;
 			
 		// checando indices para saber hora de finalizar a recursao
-		if(first >= last)
+		if(first >= last){
 			return;
+		}
 		
 		// definindo variaveis auxiliares
 		int i = first, j = last;
@@ -89,11 +85,7 @@ class AlgorithmRunnable implements Runnable
 		// novo runnable para elementos a direita do pivo		
 		AlgorithmRunnable right = new AlgorithmRunnable(array, pivot + 1, last, this.threadPool);
 		this.threadPool.execute(right);
-		
-		// flag para finalizar execucao das threads
-		this.finished = true;
 		 
     }
-	
 	
 }

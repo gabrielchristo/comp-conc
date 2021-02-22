@@ -82,7 +82,7 @@ class QuickSort
 		double executionTime = (end - start)/1.0E9; // segundos
 		double awaitingTime = ((double)ThreadPool.timerInterval/1000) * ThreadPool.maxKeepAlive; // segundos de espera do timeout para normalizar o valor
 		
-		System.out.printf("Total: %f s Keep Alive: %f s\n", executionTime, awaitingTime);
+		//System.out.printf("Total: %f s Keep Alive: %f s\n", executionTime, awaitingTime);
 		
 		System.out.printf("Tempo de execucao: %f s\n", executionTime - awaitingTime);
 		

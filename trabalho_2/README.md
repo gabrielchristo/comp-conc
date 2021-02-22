@@ -33,17 +33,17 @@ java QuickSort tamanhoDoArray numeroDeThreads
 
 | Tamanho do Vetor/Threads | 1 (sequencial) | 2          | 4          |
 |:------------------------:|----------------|------------|------------|
-| 10^2                     | 0,002911 s     | 0,002877 s | 0,003265 s |
-| 10^3                     | 0,002747 s     | 0,003256 s | 0,002958 s |
-| 10^4                     | 0,002854 s     | 0,002422 s | 0,003853 s |
-| 10^5                     | 0,007880 s     | 0,008891 s | 0,010585 s |
-| 10^6                     | 0,023836 s     | 0,028939 s | 0,032887 s |
-| 10^7                     | 0,080424 s     | 0,077513 s | 0,059903 s |
-| 10^8                     | 0,439504 s     | 0,285185 s | 0,171490 s |
+| 10^2                     | 0,002932 s     | 0,004415 s | 0,008783 s |
+| 10^3                     | 0,005753 s     | 0,010748 s | 0,010342 s |
+| 10^4                     | 0,010831 s     | 0,010210 s | 0,007859 s |
+| 10^5                     | 0,709994 s     | 0,509366 s | 0,257365 s |
+| 10^6                     | 17,80181 s     | 8,802109 s | 4,804662 s |
+| 10^7                     | 1676,209 s     | 725,3019 s | 493,0026 s |
 
-Como visto, apenas a partir de 10^7 elementos obtivemos desempenho melhor utilizando multithreading. Acreditamos que o overhead da criação dos objetos AlgorithmRunnable possa estar impactando um melhor ganho de desempenho.
+Como visto, apenas a partir de 10^5 elementos obtivemos desempenho melhor utilizando multithreading. Acreditamos que o overhead da criação dos objetos AlgorithmRunnable possa estar impactando um melhor ganho de desempenho.
 
 Não foi possível efetuar testes com mais do que 10^9 elementos no vetor, pois acima desse valor extrapolamos o tamanho da heap alocada pela máquina virtual do java, gerando a exception OutOfMemoryError.
 
-Em relação ao desenvolvimento foi muito interessante poder estudar e implementar o padrão thread pool, além de definir a estrutura geral do trabalho.
+No caso de 10^8 o tempo de execução aumentava consideravelmente, por essa razão não fizemos as medições para este caso.
 
+Em relação ao desenvolvimento foi muito interessante poder estudar e implementar o padrão thread pool, além de definir a estrutura geral do trabalho.

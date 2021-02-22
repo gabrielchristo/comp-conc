@@ -20,9 +20,9 @@ class AlgorithmRunnable implements Runnable
 	// inicializa recursao
     public void start()
 	{
+		System.out.println("Ordenando");
 		threadPool.startTimer();
         threadPool.execute(this);
-		System.out.println("Ordenando");
     }
 	
 	// troca dois elementos de lugar em um vetor de inteiros
@@ -31,7 +31,7 @@ class AlgorithmRunnable implements Runnable
 		int temp = array[i];
 		array[i] = array[j];
 		array[j] = temp;
-		threadPool.keepAlive = 0; // resetando keepAlive a cada operacao de swap
+		threadPool.resetKeepAlive(); // resetando keepAlive a cada operacao de swap
 	}
 	
 	// metodo executado pela thread
@@ -45,6 +45,7 @@ class AlgorithmRunnable implements Runnable
 			
 		// checando indices para saber hora de finalizar a recursao
 		if(first >= last){
+			this.threadPool.resetKeepAlive();
 			return;
 		}
 		
@@ -85,6 +86,8 @@ class AlgorithmRunnable implements Runnable
 		// novo runnable para elementos a direita do pivo		
 		AlgorithmRunnable right = new AlgorithmRunnable(array, pivot + 1, last, this.threadPool);
 		this.threadPool.execute(right);
+		
+		this.threadPool.resetKeepAlive();
 		 
     }
 	

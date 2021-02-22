@@ -65,13 +65,15 @@ class QuickSort
 		
 		ar.start();
 		
-		while(!threadPool.timeout){ 
+		while(!threadPool.getTimeout()){ 
 			; // nao faz nada na thread principal enquanto algoritmo esta executando no thread pool
 		}
-		System.out.println("Threads finalizaram");
+		threadPool.stop();
 		
 		// checando tempo de fim da ordenacao
 		long end = System.nanoTime();
+		
+		System.out.println("Threads finalizaram");
 		
 		// mostrando array ordenado
 		//qs.printArray();

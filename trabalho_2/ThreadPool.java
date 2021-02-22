@@ -38,15 +38,15 @@ class ThreadPool
 	{	
 		this.timer = new Timer();
 		this.timerTask = new ThreadPoolTask(this);
-		this.timer.scheduleAtFixedRate(this.timerTask, 0, timerInterval); // primeira checagem logo apos chamada
+		this.timer.scheduleAtFixedRate(this.timerTask, timerInterval, timerInterval); // primeira checagem logo apos chamada
 																		  // depois disso a cada timerInterval ms
 	}
 	
 	// adiciona runnable na fila de execucao
 	public synchronized void execute(Runnable task)
 	{
+		this.resetKeepAlive(); // reseta keepAlive pra cada tarefa que chega na fila
 		this.queue.push(task);
-		this.keepAlive = 0; // reseta keepAlive pra cada tarefa que chega na fila 
 		//System.out.printf("Added task %s to queue (queue size = %d)\n", task.toString(), this.queue.size());
 	}
 	
@@ -57,6 +57,31 @@ class ThreadPool
             w.stop();
 		this.timerTask.cancel(); // parando timer
 		this.timer.cancel(); // parando tarefa do timer
+	}
+	
+	public synchronized void incrementKeepAlive()
+	{
+		this.keepAlive++;
+	}
+	
+	public synchronized void resetKeepAlive()
+	{
+		this.keepAlive = 0;
+	}
+	
+	public synchronized int getKeepAlive()
+	{
+		return this.keepAlive;
+	}
+	
+	public synchronized void setTimeout(boolean value)
+	{
+		this.timeout = value;
+	}
+	
+	public synchronized boolean getTimeout()
+	{
+		return this.timeout;
 	}
 	
 }
@@ -76,14 +101,13 @@ class ThreadPoolTask extends TimerTask
      @Override
      public void run()
 	 {
-         this.threadPool.keepAlive++;
+         this.threadPool.incrementKeepAlive();
 		 //System.out.printf("Current keepAlive: %d\n", this.threadPool.keepAlive);
 		 
-		 if(this.threadPool.keepAlive == ThreadPool.maxKeepAlive && this.threadPool.queue.size() == 0) // tempo maximo sem atividade
+		 if(this.threadPool.getKeepAlive() >= ThreadPool.maxKeepAlive && this.threadPool.queue.size() == 0) // tempo maximo sem atividade
 		 { 
 			//System.out.printf("ThreadPool timeout\n");
-			this.threadPool.timeout = true;
-			this.threadPool.stop();
+			this.threadPool.setTimeout(true);
 		 }
      }
 }

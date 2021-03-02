@@ -53,7 +53,5 @@ gcc main.c -o output
 ## TODO
 
 - checar corretude
-- condicao de barreira para threads de pesquisa
 - contador de blocos?
-- buffer de int ou blocos?
 - avaliar valores de N/M para menor tempo de execucao

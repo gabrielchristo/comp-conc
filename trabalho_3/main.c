@@ -6,15 +6,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <string.h>
+#include <semaphore.h>
+
 #include "timer.h"
+
+typedef enum
+{
+	OK = 0,
+	NOT_OK,
+	ON_WAY,
+	WAIT_NEXT_ITERATION
+} States;
+
+int timeToStop = 0;
+
+int maiorSequencia = 0; //
+int sequencia3Iguais = 0; //
+int sequencia0a5 = 0; //
 
 static int N = 0; // tamanho do bloco de leitura (recebido por argv)
 static int M = 0; // tamanho do buffer (recebido por argv)
+
+int *blocoAtual = NULL; //
+int tamBlocoAtual = 0; //
 
 #define default_sequence_size 6 // tamanho da sequencia pre definida
 static int default_sequence[default_sequence_size] = {0 ,1, 2, 3, 4, 5}; // sequencia pre definida
 
 static char* binfile = "entrada.bin";
+
+#define NTHREADS 4
+#define NTHREADS_PESQUISA 1
+int contador = NTHREADS_PESQUISA; // numero de threads executando na barreira
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; // mutex
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER; // variavel de condicao da barreira
+pthread_cond_t condSearch = PTHREAD_COND_INITIALIZER; // variavel de condicao das threads de pesquisa
 
 // mensagem de erro e finalizacao do programa
 void throw(char *msg)
@@ -38,14 +65,147 @@ void generate_input_file()
 	fwrite(&numberOfValues, sizeof(int), 1, file);
 	fwrite(&values[0], sizeof(int), numberOfValues, file);
 	
-	// TODO escrever valores aleatorios no arquivo
+	// TODO escrever valores aleatorios no arquivo ?
 	
 	fclose(file);
+}
+
+void printArray(char* msg, int* array, int size)
+{
+	printf("%s ", msg);
+	for(int i = 0; i < size; i++)
+		printf("%d ", array[i]);
+	printf("\n");
+}
+
+// condicao de barreira para threads de pesquisa
+void barreira()
+{
+	pthread_mutex_lock(&mutex);
+	
+	contador--;
+	if(contador > 0){
+		printf("thread de pesquisa bloqueada na barreira\n");
+		pthread_cond_wait(&condSearch, &mutex);
+	}
+	else {
+		contador = NTHREADS_PESQUISA;
+		
+		// limpando buffer do bloco atual para proxima leitura
+		tamBlocoAtual = 0;
+		memset(blocoAtual, 0, M);
+		
+		printf("limpei bloco atual e desbloqueei threads na barreira\n");
+		
+		// sinalizando thread leitora do arquivo
+		pthread_cond_signal(&cond);
+	}
+	pthread_mutex_unlock(&mutex);
+}
+
+// adiciona inteiro ao final do bloco atual
+void push(int value)
+{
+	if(tamBlocoAtual == M) return;
+	blocoAtual[tamBlocoAtual++] = value;
+}
+
+// remove primeiro inteiro do bloco atual
+int pop()
+{
+	int value = blocoAtual[0];
+	
+	for(int i = 0; i < --tamBlocoAtual; i++)
+		blocoAtual[i] = blocoAtual[i+1];
+	
+	return value;
 }
 
 // thread para leitura do arquivo e escrita no buffer
 void* file_reader(void* arg)
 {
+	FILE *file = fopen(binfile, "rb");
+	fseek(file, sizeof(int), SEEK_SET); // ignorando primeiro elemento do arquivo (tamanho da lista)
+	
+	// buffer temporario de tamanho n para leitura
+	int buffer[N];
+	
+	pthread_mutex_lock(&mutex);
+	
+	while(fread(&buffer, sizeof(int), N, file) == N){
+		for(int i = 0; i < N; i++){
+			
+			// checando buffer cheio
+			while(tamBlocoAtual == M){
+				printf("loop de leitura bloqueou devido buffer cheio\n");
+				pthread_cond_wait(&cond, &mutex);
+			}
+			// adicionando novo elemento no bloco atual
+			push(buffer[i]);
+			
+			printArray("apos adicionar elemento", blocoAtual, tamBlocoAtual);
+			
+			//pthread_cond_signal(&cond);
+			pthread_cond_broadcast(&condSearch);
+		}
+		//barreira();
+	}
+	
+	timeToStop = 1;
+	
+	pthread_mutex_unlock(&mutex);
+	
+	fclose(file);
+	
+	return NULL;
+}
+
+// thread para computar numero de sequencias de tamanho 3 com mesmo valor
+void* same_value_three_times(void* arg)
+{
+	static int primeiroValor = -1;
+	static int contador3Valores = 0;
+
+	while(1){
+		pthread_mutex_lock(&mutex);
+	
+		// aguardando buffer ficar cheio para processamento
+		while(tamBlocoAtual < M){
+			printf("thread 3 valores iguais esperando buffer ficar cheio\n");
+			pthread_cond_wait(&condSearch, &mutex);	
+		}
+		printf("thread 3 valores iguais desbloqueada\n");
+	
+		// maquina de estados para checar 3 valores repetidos
+		if(primeiroValor == -1)
+			primeiroValor = blocoAtual[0]; // se for primeira iteração tenho que inicializar o valor estatico
+	
+		for(int i = 0; i < M; i++){
+			if(blocoAtual[i] == primeiroValor){
+				contador3Valores++;
+			}
+			else {
+				primeiroValor = blocoAtual[i];
+				contador3Valores = 1;
+			}	
+			if(contador3Valores == 3){
+				sequencia3Iguais++;
+				contador3Valores = 0;
+				printf("sequencia de 3 valores iguais no indice %d (ultimo indice da tripla) com valor %d\n", i, primeiroValor);
+			}
+		}
+	
+		pthread_cond_signal(&cond); // sinal para thread leitora do arquivo
+		//pthread_cond_broadcast(&condSearch);
+		
+		pthread_mutex_unlock(&mutex);
+		
+		barreira(); // entrando na barreira das threads de pesquisa
+		
+		if(timeToStop) break; // parando loop no fim do arquivo
+		
+	}
+	
 	return NULL;
 }
 
@@ -61,37 +221,41 @@ void* larger_identical_values(void* arg)
 	return NULL;
 }
 
-// thread para computar numero de sequencias de tamanho 3 com mesmo valor
-void* same_value_three_times(void* arg)
-{
-	return NULL;
-}
-
 // ponto de entrada
 int main(int argc, char** argv)
 {
 	if(argc != 3)
 		throw("Usage: ./executable readingBlockSize bufferSize");
 	
+	// tamanho do bloco de leitura
 	N = atoi(argv[1]);
+	
+	// tamanho do buffer compartilhado
 	M = atoi(argv[2]);
+	blocoAtual = (int*) malloc(sizeof(int) * M);
 	
-	printf("N:%d M:%d\n", N, M);
+	// criando arquivo binario
+	//generate_input_file();
 	
-	for(int i = 0; i < default_sequence_size; i++)
-		printf("[%x]", default_sequence[i]);
-	printf("\n");
+	// criando threads
+	pthread_t threads[NTHREADS];
+	if(pthread_create(&threads[0], NULL, fixed_sequence, NULL)) throw("error on thread creation");
+	if(pthread_create(&threads[1], NULL, larger_identical_values, NULL)) throw("error on thread creation");
+	if(pthread_create(&threads[2], NULL, same_value_three_times, NULL)) throw("error on thread creation");
+	if(pthread_create(&threads[3], NULL, file_reader, NULL)) throw("error on thread creation");
 	
-	generate_input_file();
+	// join nas threads
+	for(int i = 0; i < NTHREADS; i++)
+		pthread_join(threads[i], NULL);
 	
-	// TODO criar threads
+	// destruindo mutex e condvar
+	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&cond);
+	pthread_cond_destroy(&condSearch);
 	
-	// TODO join nas threads e receber valores
-	
-	fprintf(stdout, "Maior sequencia de valores identicos: \n");
-	fprintf(stdout, "Quantidade de triplas: \n");
-	fprintf(stdout, "Quantidade de ocorrencias da sequencia <012345>: \n");
-	
+	fprintf(stdout, "\nMaior sequencia de valores identicos: %d\n", maiorSequencia);
+	fprintf(stdout, "Quantidade de triplas: %d\n", sequencia3Iguais);
+	fprintf(stdout, "Quantidade de ocorrencias da sequencia <012345>: %d\n", sequencia0a5);
 	
 	return 0;
 }

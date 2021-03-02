@@ -25,8 +25,8 @@ int tamBlocoAtual = 0; // tamanho atual do bloco
 
 static char* binfile = "entrada.bin"; // nome do arquivo binario
 
-#define NTHREADS 4 // numero de thread fora a main
-#define NTHREADS_PESQUISA 2 // numero de threads efetivamente utilizando a barreira
+#define NTHREADS 4 // numero de threads do programa fora a main
+#define NTHREADS_PESQUISA 3 // numero de threads efetivamente utilizando a barreira
 int contador = NTHREADS_PESQUISA; // numero de threads executando na barreira
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; // mutex
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER; // variavel de condicao da barreira
@@ -156,7 +156,7 @@ void* same_value_three_times(void* arg)
 	static int primeiroValor = -1;
 	static int contador3Valores = 0;
 
-	while(1){
+	while(!timeToStop){
 		
 		pthread_mutex_lock(&mutex);
 		// aguardando buffer ficar cheio para processamento
@@ -189,10 +189,7 @@ void* same_value_three_times(void* arg)
 		
 		barreira(); // entrando na barreira das threads de pesquisa
 		
-		if(timeToStop) break; // parando loop no fim do arquivo
-		
 	}
-	
 	return NULL;
 }
 
@@ -202,7 +199,7 @@ void* fixed_sequence(void* arg)
 	// variaveis da maquina de estados
 	static int estado = -1;
 	
-	while(1){
+	while(!timeToStop){
 		
 		pthread_mutex_lock(&mutex);
 		
@@ -266,8 +263,6 @@ void* fixed_sequence(void* arg)
 		
 		barreira(); // entrando na barreira das threads de pesquisa
 		
-		if(timeToStop) break; // parando loop no fim do arquivo
-		
 	}
 	return NULL;
 }
@@ -275,6 +270,50 @@ void* fixed_sequence(void* arg)
 // thread para computar maior sequencia de valores iguais
 void* larger_identical_values(void* arg)
 {
+	static int tmpValorLiteral = -1;
+	static int tmpTamSequencia = 0;
+	static int tmpIndice = 0;
+	static int contadorBlocos = 0;
+	
+	while(!timeToStop){
+		
+		pthread_mutex_lock(&mutex);
+		// aguardando buffer ficar cheio para processamento
+		while(tamBlocoAtual < M && !timeToStop){
+			printf("thread maior sequencia esperando buffer ficar cheio\n");
+			pthread_cond_wait(&condSearch, &mutex);	
+		}
+		printf("thread maior sequencia desbloqueada\n");
+		pthread_mutex_unlock(&mutex);
+		
+		// inicializando variaveis temporarias com primeiro elemento do primeiro bloco
+		if(tmpValorLiteral == -1)
+			tmpValorLiteral = blocoAtual[0];
+		
+		for(int i = 0; i < M; i++){
+			if(blocoAtual[i] == tmpValorLiteral){
+				tmpTamSequencia++;
+				printf("thread maior sequencia aumentando. tamanho atual %d\n", tmpTamSequencia);
+				
+				if(tmpTamSequencia > maiorSequencia){
+					maiorSequenciaIndex = tmpIndice;
+					maiorSequenciaValor = tmpValorLiteral;
+					maiorSequencia = tmpTamSequencia;
+				}
+			}
+			else {
+				tmpValorLiteral = blocoAtual[i];
+				tmpTamSequencia = 1;
+				tmpIndice = (i + 1) + N*contadorBlocos;
+				printf("nada encontrado na thread de maior sequencia\n");
+			}
+		}
+		
+		contadorBlocos++;
+		
+		barreira(); // entrando na barreira das threads de pesquisa
+		
+	}
 	return NULL;
 }
 
@@ -295,17 +334,17 @@ int main(int argc, char** argv)
 	blocoAtual = (int*) malloc(sizeof(int) * M);
 	
 	// criando arquivo binario
-	//generate_input_file();
+	generate_input_file();
 	
 	// inicio medicao de tempo
 	GET_TIME(start);
 	
 	// criando threads
 	pthread_t threads[NTHREADS];
-	if(pthread_create(&threads[0], NULL, fixed_sequence, NULL)) throw("error on thread creation");
+	if(pthread_create(&threads[0], NULL, file_reader, NULL)) throw("error on thread creation");
 	if(pthread_create(&threads[1], NULL, larger_identical_values, NULL)) throw("error on thread creation");
 	if(pthread_create(&threads[2], NULL, same_value_three_times, NULL)) throw("error on thread creation");
-	if(pthread_create(&threads[3], NULL, file_reader, NULL)) throw("error on thread creation");
+	if(pthread_create(&threads[3], NULL, fixed_sequence, NULL)) throw("error on thread creation");
 	
 	// join nas threads
 	for(int i = 0; i < NTHREADS; i++)
@@ -321,7 +360,7 @@ int main(int argc, char** argv)
 	
 	fprintf(stdout, "\n\nTempo corrido: %lf segundos\n\n", finish - start);
 	
-	fprintf(stdout, "Maior sequencia de valores identicos: %d\n", maiorSequencia);
+	fprintf(stdout, "Maior sequencia de valores identicos: %d %d %d\n", maiorSequenciaIndex, maiorSequencia, maiorSequenciaValor);
 	fprintf(stdout, "Quantidade de triplas: %d\n", sequencia3Iguais);
 	fprintf(stdout, "Quantidade de ocorrencias da sequencia <012345>: %d\n", sequencia0a5);
 	

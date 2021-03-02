@@ -56,3 +56,12 @@ gcc main.c -o output
 - checar corretude
 - contador de blocos?
 - avaliar valores de N/M para menor tempo de execucao
+testar caso 5 6
+
+
+
+
+
+
+
+

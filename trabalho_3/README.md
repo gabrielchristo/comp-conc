@@ -52,6 +52,7 @@ gcc main.c -o output
 
 ## TODO
 
+- erro quando n/m nao eh divisivel pelo numero de elementos no arquivo
 - checar corretude
 - contador de blocos?
 - avaliar valores de N/M para menor tempo de execucao

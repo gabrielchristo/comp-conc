@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <math.h>
 #include "timer.h"
 
 int timeToStop = 0; // indica momento de finalizacao da leitura do arquivo
@@ -54,7 +55,7 @@ void generate_input_file()
 	fwrite(&numberOfValues, sizeof(int), 1, file);
 	fwrite(&values[0], sizeof(int), numberOfValues, file);
 	
-	// TODO escrever valores aleatorios no arquivo ?
+	// TODO escrever valores aleatorios no arquivo
 	
 	fclose(file);
 }
@@ -73,23 +74,27 @@ void barreira()
 	pthread_mutex_lock(&mutex);
 	
 	contador--;
-	if(contador > 0){
+	if(contador > 0 && !timeToStop){
 		printf("thread de pesquisa bloqueada na barreira\n");
 		pthread_cond_wait(&condSearch, &mutex);
 	}
+	
 	else {
 		
 		printf("ultima thread de pesquisa entrou na barreira\n");
 		contador = NTHREADS_PESQUISA;
 		
 		// limpando buffer do bloco atual para proxima leitura
-		tamBlocoAtual = 0;
-		memset(blocoAtual, 0, M);
+		if(!timeToStop){
+			tamBlocoAtual = 0;
+			memset(blocoAtual, 0, M);
+			printf("limpei bloco atual na barreira\n");
+		}
 		
-		printf("limpei bloco atual e desbloqueei threads na barreira\n");
 		// sinalizando threads
 		pthread_cond_signal(&cond);
 		pthread_cond_broadcast(&condSearch);
+		printf("desbloqueei as threads na barreira\n");
 	}
 	pthread_mutex_unlock(&mutex);
 }
@@ -111,17 +116,20 @@ void* file_reader(void* arg)
 	int buffer[N];
 
 	int readResponse;
-	while((readResponse = fread(&buffer, sizeof(int), N, file)) == N ){
-		for(int i = 0; i < N; i++){
+	while((readResponse = fread(&buffer, sizeof(int), N, file)) >= 1){
+		
+		// se for recebido menos elementos que o tamanho do bloco, estamos na ultima iteracao
+		// nesse caso atualizamos a variavel global M para adequar a logica ao ultimo bloco
+		if(readResponse < N && feof(file)){
+			pthread_mutex_lock(&mutex);
+			M = readResponse; // simular buffer cheio
+			pthread_mutex_unlock(&mutex);
+			printf("valor de elementos lidos menor que N, ultima iteracao\n");
+		}
+		
+		for(int i = 0; i < readResponse; i++){
 			
 			pthread_mutex_lock(&mutex);
-			
-			// se for recebido menos elementos que o tamanho do bloco, estamos na ultima iteracao
-			// nesse caso atualizamos a variavel global M para adequar a logica ao ultimo bloco
-			//if(readResponse < N){
-			//	M = readResponse;
-			//	printf("valor de elementos lidos menor que N, ultima iteracao\n");
-			//}
 			
 			// checando buffer cheio
 			while(tamBlocoAtual == M){
@@ -138,6 +146,7 @@ void* file_reader(void* arg)
 			
 			pthread_mutex_unlock(&mutex);
 		}
+		
 	}
 	printf("fim do loop de leitura do arquivo\n");
 	
@@ -190,6 +199,8 @@ void* same_value_three_times(void* arg)
 		barreira(); // entrando na barreira das threads de pesquisa
 		
 	}
+	printf("thread 3 valores finalizada\n");
+	
 	return NULL;
 }
 
@@ -264,6 +275,8 @@ void* fixed_sequence(void* arg)
 		barreira(); // entrando na barreira das threads de pesquisa
 		
 	}
+	printf("thread sequencia fixa finalizada\n");
+	
 	return NULL;
 }
 
@@ -304,7 +317,11 @@ void* larger_identical_values(void* arg)
 			else {
 				tmpValorLiteral = blocoAtual[i];
 				tmpTamSequencia = 1;
-				tmpIndice = (i + 1) + N*contadorBlocos;
+				
+				// normalizando valor do indice quando N > M
+				int normIndex = (N > M) ? abs(N-M) : 0;
+				tmpIndice = (i + 1) + N*contadorBlocos - normIndex;
+				
 				printf("nada encontrado na thread de maior sequencia\n");
 			}
 		}
@@ -314,6 +331,8 @@ void* larger_identical_values(void* arg)
 		barreira(); // entrando na barreira das threads de pesquisa
 		
 	}
+	printf("thread maior sequencia finalizada\n");
+	
 	return NULL;
 }
 
@@ -331,6 +350,7 @@ int main(int argc, char** argv)
 	
 	// tamanho do buffer compartilhado
 	M = atoi(argv[2]);
+	
 	blocoAtual = (int*) malloc(sizeof(int) * M);
 	
 	// criando arquivo binario
